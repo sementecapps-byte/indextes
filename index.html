@@ -69,10 +69,10 @@
       }
 
       return (
-        <div className="relative pb-24 w-full">
+        <div className="relative pb-24 w-full px-2 sm:px-4">
           {/* Logo */}
           <div className="flex justify-center mb-4">
-            <img src="https://img.icons8.com/color/96/shopping-cart.png" className="w-20 h-20" />
+            <img src="https://img.icons8.com/color/96/shopping-cart.png" className="w-20 h-20 sm:w-24 sm:h-24" />
           </div>
 
           {/* Filtros */}
@@ -100,16 +100,16 @@
           </div>
 
           {/* Sugestões */}
-          <div className="mb-4">
+          <div className="mb-4 flex flex-col gap-1">
             {buscaAtiva && sugeridos.map((p,i)=>(
-              <div key={i} className="cursor-pointer flex items-center gap-2 p-2 bg-white mb-1 rounded shadow" onClick={()=>setPopupItem(p)}>
-                <img src={p.imagem} className="w-10 h-10" /> {p.nome}
+              <div key={i} className="cursor-pointer flex items-center gap-2 p-2 bg-white rounded shadow" onClick={()=>setPopupItem(p)}>
+                <img src={p.imagem} className="w-10 h-10 sm:w-12 sm:h-12" /> {p.nome}
               </div>
             ))}
           </div>
 
           {/* Botões */}
-          <div className="flex gap-2 mb-6">
+          <div className="flex flex-col sm:flex-row gap-2 mb-6">
             <button onClick={()=>{
               const nome = prompt("Nome do produto:");
               if(nome) abrirPopupPersonalizado(nome, "https://img.icons8.com/ios/96/ingredients-list.png");
@@ -120,27 +120,27 @@
 
           {/* Sacola */}
           <h2 className="mt-6 mb-2 font-bold text-lg">Minha Sacola</h2>
-          <div>
-            {sacola.map((i,idx)=>(<div key={idx} className="flex items-center gap-2 bg-white p-2 mb-1 rounded shadow">
-              <img src={i.imagem} className="w-10 h-10" />
-              <span>{i.quantidade} {i.unidade} - {i.nome}</span>
-            </div>))}
+          <div className="flex flex-col gap-2">
+            {sacola.map((i,idx)=>(
+              <div key={idx} className="flex items-center gap-2 bg-white p-2 rounded shadow flex-wrap sm:flex-nowrap">
+                <img src={i.imagem} className="w-10 h-10 sm:w-12 sm:h-12" />
+                <span>{i.quantidade} {i.unidade} - {i.nome}</span>
+              </div>
+            ))}
           </div>
 
           {/* Popup */}
           {popupItem && (
-            <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-              <div className="bg-white p-6 rounded shadow w-80">
-                <h3 className="font-bold mb-2">Adicionar {popupItem.nome}</h3>
+            <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 p-2">
+              <div className="bg-white p-4 sm:p-6 rounded shadow w-full max-w-xs sm:max-w-sm">
+                <h3 className="font-bold mb-2 text-center sm:text-left">Adicionar {popupItem.nome}</h3>
 
-                {/* Quantidade - Lista Suspensa */}
                 <select id="qtd" className="border w-full p-2 mb-2">
                   {Array.from({length: 15}, (_, i) => i + 1).map(n => (
                     <option key={n} value={n}>{n}</option>
                   ))}
                 </select>
 
-                {/* Unidade - Lista Suspensa */}
                 <select id="uni" className="border w-full p-2 mb-2">
                   <option>KILO</option>
                   <option>UNIDADE</option>
@@ -149,7 +149,7 @@
                   <option>FARDO</option>
                 </select>
 
-                <div className="flex justify-between gap-2">
+                <div className="flex flex-col sm:flex-row justify-between gap-2">
                   <button className="bg-gray-400 text-white px-4 py-2 rounded flex-1" onClick={()=>setPopupItem(null)}>VOLTAR</button>
                   <button className="bg-green-600 text-white px-4 py-2 rounded flex-1" onClick={()=>{
                     const qtd = document.getElementById("qtd").value;
