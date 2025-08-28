@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lista de Compras</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex justify-center items-start p-4">
+  <div id="root" class="w-full max-w-2xl"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    const produtosIniciais = [
+      { nome: "Arroz", imagem: "https://img.icons8.com/color/96/rice-bowl.png", categoria: "GRÃOS" },
+      { nome: "Feijão", imagem: "https://img.icons8.com/color/96/beans.png", categoria: "GRÃOS" },
+      { nome: "Leite", imagem: "https://img.icons8.com/color/96/milk-bottle.png", categoria: "LIMPEZA" },
+      { nome: "Óleo", imagem: "https://img.icons8.com/color/96/oil-industry.png", categoria: "GRÃOS" },
+      { nome: "Pão", imagem: "https://img.icons8.com/color/96/baguette.png", categoria: "VERDURAS" },
+      { nome: "Frango", imagem: "https://img.icons8.com/color/96/chicken.png", categoria: "CARNES" }
+    ];
+
+    function App() {
+      const [iniciou, setIniciou] = useState(false);
+      const [busca, setBusca] = useState("");
+      const [buscaAtiva, setBuscaAtiva] = useState(false);
+      const [sacola, setSacola] = useState([]);
+      const [produtos, setProdutos] = useState(produtosIniciais);
+      const [popupItem, setPopupItem] = useState(null);
+      const [filtro, setFiltro] = useState("TODOS");
+
+      const sugeridos = produtos.filter(p => 
+        p.nome.toLowerCase().includes(busca.toLowerCase()) &&
+        (filtro === "TODOS" || p.categoria === filtro)
+      );
+
+      function adicionarNaSacola(item, quantidade, unidade) {
+        setSacola([...sacola, { ...item, quantidade, unidade }]);
+        setPopupItem(null);
+      }
+
+      function abrirPopupPersonalizado(nome, imagem) {
+        setPopupItem({ nome, imagem });
+      }
+
+      function gerarPlanilha() {
+        const dados = sacola.map(i => ({ Produto: i.nome, Quantidade: i.quantidade, Unidade: i.unidade }));
+        const ws = XLSX.utils.json_to_sheet(dados);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Lista");
+        const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+        const blob = new Blob([wbout], { type: "application/octet-stream" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "lista_compras.xlsx";
+        a.click();
+
+        const numeroFicticio = "5511999999999";
+        const mensagem = encodeURIComponent("Minha lista de compras foi enviada!");
+        window.open(`https://wa.me/${numeroFicticio}?text=${mensagem}`, "_blank");
+
+        alert("Sua lista foi enviada!");
+      }
+
+      return (
+        <div className="relative pb-24 w-full">
+          {/* Logo */}
+          <div className="flex justify-center mb-4">
+            <img src="https://img.icons8.com/color/96/shopping-cart.png" className="w-20 h-20" />
+          </div>
+
+          {/* Filtros */}
+          <div className="flex justify-center gap-2 mb-4 flex-wrap">
+            {["TODOS", "CARNES", "LIMPEZA", "GRÃOS", "VERDURAS"].map(cat=>(
+              <button 
+                key={cat} 
+                className={`px-4 py-2 rounded font-bold ${filtro===cat?"bg-green-600 text-white":"bg-gray-300"}`}
+                onClick={()=>setFiltro(cat)}>
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          {/* Barra de busca */}
+          <div className="mb-4 flex justify-center">
+            <input 
+              value={busca} 
+              onChange={e=>setBusca(e.target.value)} 
+              placeholder="Buscar produto..."
+              className="border rounded px-3 py-2 w-full max-w-xl"
+              onFocus={()=>setBuscaAtiva(true)}
+              onBlur={()=>setTimeout(()=>setBuscaAtiva(false),200)}
+            />
+          </div>
+
+          {/* Sugestões */}
+          <div className="mb-4">
+            {buscaAtiva && sugeridos.map((p,i)=>(
+              <div key={i} className="cursor-pointer flex items-center gap-2 p-2 bg-white mb-1 rounded shadow" onClick={()=>setPopupItem(p)}>
+                <img src={p.imagem} className="w-10 h-10" /> {p.nome}
+              </div>
+            ))}
+          </div>
+
+          {/* Botões */}
+          <div className="flex gap-2 mb-6">
+            <button onClick={()=>{
+              const nome = prompt("Nome do produto:");
+              if(nome) abrirPopupPersonalizado(nome, "https://img.icons8.com/ios/96/ingredients-list.png");
+            }} className="bg-yellow-500 text-white px-4 py-2 rounded flex-1">ADICIONAR OUTRO TIPO DE PRODUTO</button>
+
+            <button onClick={gerarPlanilha} className="bg-green-700 text-white px-4 py-2 rounded flex-1">MANDAR LISTA</button>
+          </div>
+
+          {/* Sacola */}
+          <h2 className="mt-6 mb-2 font-bold text-lg">Minha Sacola</h2>
+          <div>
+            {sacola.map((i,idx)=>(<div key={idx} className="flex items-center gap-2 bg-white p-2 mb-1 rounded shadow">
+              <img src={i.imagem} className="w-10 h-10" />
+              <span>{i.quantidade} {i.unidade} - {i.nome}</span>
+            </div>))}
+          </div>
+
+          {/* Popup */}
+          {popupItem && (
+            <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+              <div className="bg-white p-6 rounded shadow w-80">
+                <h3 className="font-bold mb-2">Adicionar {popupItem.nome}</h3>
+
+                {/* Quantidade - Lista Suspensa */}
+                <select id="qtd" className="border w-full p-2 mb-2">
+                  {Array.from({length: 15}, (_, i) => i + 1).map(n => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+
+                {/* Unidade - Lista Suspensa */}
+                <select id="uni" className="border w-full p-2 mb-2">
+                  <option>KILO</option>
+                  <option>UNIDADE</option>
+                  <option>CAIXA</option>
+                  <option>PACOTE</option>
+                  <option>FARDO</option>
+                </select>
+
+                <div className="flex justify-between gap-2">
+                  <button className="bg-gray-400 text-white px-4 py-2 rounded flex-1" onClick={()=>setPopupItem(null)}>VOLTAR</button>
+                  <button className="bg-green-600 text-white px-4 py-2 rounded flex-1" onClick={()=>{
+                    const qtd = document.getElementById("qtd").value;
+                    const uni = document.getElementById("uni").value;
+                    adicionarNaSacola(popupItem,qtd,uni);
+                  }}>POR NA SACOLA</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
