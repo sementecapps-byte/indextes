@@ -1,1 +1,68 @@
-dfdfsdfsd
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sistema de Agendamento</title>
+</head>
+<body>
+
+    <h1>Agendar Treino</h1>
+
+    <form id="agendamentoForm">
+        <label for="nome">Nome:</label><br>
+        <input type="text" id="nome" name="nome" required><br><br>
+
+        <label for="mes">Mês:</label><br>
+        <input type="text" id="mes" name="mes" required><br><br>
+        
+        <button type="submit">Agendar</button>
+    </form>
+
+    <p id="feedback"></p>
+
+    <script>
+        const form = document.getElementById('agendamentoForm');
+        const feedback = document.getElementById('feedback');
+
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            // Obtenha os dados do formulário
+            const dados = {
+                nome: document.getElementById('nome').value,
+                mes: document.getElementById('mes').value,
+                // Adicione os outros campos aqui
+            };
+
+            // URL de implantação do seu Apps Script
+            const appsScriptUrl = "URL_DO_SEU_APP_SCRIPT_AQUI"; 
+
+            try {
+                const response = await fetch(appsScriptUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain' // É necessário usar 'text/plain' para o Apps Script
+                    },
+                    body: JSON.stringify(dados)
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    feedback.textContent = result.message;
+                    feedback.style.color = 'green';
+                    form.reset(); // Limpa o formulário após o sucesso
+                } else {
+                    feedback.textContent = result.message;
+                    feedback.style.color = 'red';
+                }
+
+            } catch (error) {
+                console.error('Erro na requisição:', error);
+                feedback.textContent = 'Erro ao se conectar com o servidor.';
+                feedback.style.color = 'red';
+            }
+        });
+    </script>
+
+</body>
+</html>
